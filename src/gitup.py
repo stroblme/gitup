@@ -58,3 +58,5 @@ def GitChecker(gitDirList = gitList):
 
 ProjectWalker()
 GitChecker(gitList)
+
+input('\nDone. Press Any Key to quit')
