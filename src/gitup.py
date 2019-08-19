@@ -35,8 +35,10 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = 5000):
     p = subprocess.Popen([prefix, args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     err_code = p.wait(timeout)
 
-    if err_code != 0:
-        print('Returned ' + str(err_code) + ' while checking ' + folder)
+    if err_code == 128:
+        print('Timeout (EC ' + str(err_code) + ') while checking ' + folder)
+    elif err_code != 0:
+        print('Returned EC ' + str(err_code) + ' while checking ' + folder)
 
     return str(p.stdout.read())
 
@@ -48,12 +50,24 @@ def GitChecker(gitDirList = gitList):
 
         result = SysCmdRunner(folder=gitDir, args='status')
 
+        #Check if we are locally clean
         if('Changes not staged for commit' in result):
             print('Some uncommitted changes in \t' + gitDir)
             checkGitList.append(gitDir)
         elif('Untracked files' in result):
             print('Some untracked files in \t' + gitDir)
             checkGitList.append(gitDir)
+        #Check if we have some changes on the remote site
+        else:
+            result = SysCmdRunner(folder=gitDir, args='fetch')
+            result = SysCmdRunner(folder=gitDir, args='status')
+
+            if('Your branch is behind' in result):
+                print('Some changes on remote in \t' + gitDir)
+            elif('Your branch is ahead' in result):
+                print('Some unpushed changes in \t' + gitDir)
+
+
 
     return checkGitList
 
