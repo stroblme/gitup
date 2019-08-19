@@ -142,7 +142,7 @@ def GitResolver(resolveGitList = checkGitList):
         elif(gitOperation == GitOperations.pull):
             print('Some changes on remote in \t' + gitDir)
 
-            ans = input('Should I pull the repo? [Y/n]\t')
+            ans = input('Should I pull the repo? (Y/[n])\t')
 
             if ans == 'Y':
                 result = SysCmdRunner(folder=gitDir, args='pull')
@@ -152,7 +152,7 @@ def GitResolver(resolveGitList = checkGitList):
         elif(gitOperation == GitOperations.pull):
             print('Some unpushed changes in \t' + gitDir)
 
-            ans = input('Should I push them? [Y/n]\t')
+            ans = input('Should I push them? (Y/[n])\t')
 
             if ans == 'Y':
                 result = SysCmdRunner(folder=gitDir, args='push')
@@ -177,9 +177,9 @@ def main():
     GitChecker()
 
     if len(checkGitList) != 0:
-        ans = input('\nI found some repositories which may require your attention. \nPress [Y] to resolve them or any key to quit\t')
+        ans = input('\nI found some repositories which may require your attention. \nPress (n/[Y]) to resolve them or any key to quit\t')
 
-        if ans == 'Y':
+        if ans != 'n':
             GitResolver()
 
             input('\nPress any key to quit')
