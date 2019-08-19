@@ -35,6 +35,14 @@ from collections import OrderedDict
 import subprocess
 import shutil
 
+try:
+    import colorama
+    from colorama import Fore, Back, Style
+
+except:
+    if input('Colorama not installed. Should I install it?') == 'Y':
+        os.system('pip install colorama')
+
 MAXFOLDERLEVEL = 3
 projectFolders = ['X:/', 'D:/Dokumente/Studium', 'C:/Program Files/Git/cmd']
 
@@ -106,7 +114,7 @@ def GitChecker(gitDirList = gitList):
     Iterates the previously by ProjectWalker method detected git repos and calls git status or git fetch if required to check for any unresolved issues
     '''
 
-    print('\nChecking ' + str(len(gitDirList)) + ' detected directories\n')
+    print(Fore.CYAN + '\nChecking ' + str(len(gitDirList)) + ' detected directories\n' + Fore.RESET)
 
     for gitDir in gitDirList:
 
@@ -114,11 +122,11 @@ def GitChecker(gitDirList = gitList):
 
         #Check if we are locally clean
         if('Changes not staged for commit' in result):
-            print('Some uncommitted changes in \t' + gitDir)
+            print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
             checkGitList[gitDir] = GitOperations.commit
 
         elif('Untracked files' in result):
-            print('Some untracked files in \t' + gitDir)
+            print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
             checkGitList[gitDir] = GitOperations.add
 
         #Check if we have some changes on the remote site
@@ -127,11 +135,11 @@ def GitChecker(gitDirList = gitList):
             result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
 
             if('Your branch is behind' in result):
-                print('Some changes on remote in \t' + gitDir)
+                print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
                 checkGitList[gitDir] = GitOperations.pull
 
             elif('Your branch is ahead' in result):
-                print('Some unpushed changes in \t' + gitDir)
+                print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
                 checkGitList[gitDir] = GitOperations.push
 
 
@@ -144,12 +152,12 @@ def GitResolver(resolveGitList = checkGitList):
     Asks user to either commit, push or pull the desired repo
     '''
 
-    print('\Resolving ' + str(len(resolveGitList)) + ' detected directories\n')
+    print(Fore.CYAN + 'Resolving ' + str(len(resolveGitList)) + ' detected directories\n' + Fore.RESET)
 
     for gitDir, gitOperation in resolveGitList.items():
 
         if(gitOperation == GitOperations.add):
-            print('Some untracked files in \t' + gitDir)
+            print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
@@ -162,7 +170,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Skipping..')
 
         elif(gitOperation == GitOperations.commit):
-            print('Some uncommitted changes in \t' + gitDir)
+            print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
@@ -175,7 +183,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Skipping..')
 
         elif(gitOperation == GitOperations.pull):
-            print('Some changes on remote in \t' + gitDir)
+            print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Should I pull the repo? (Y/[n])\t')
 
@@ -187,7 +195,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Skipping..')
 
         elif(gitOperation == GitOperations.push):
-            print('Some unpushed changes in \t' + gitDir)
+            print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Should I push them? (Y/[n])\t')
 
@@ -203,17 +211,20 @@ def GitResolver(resolveGitList = checkGitList):
 
         print('\n')
 
-    print('Finished resolving git repositories')
+    print(Fore.GREEN + 'Finished resolving git repositories' + Fore.RESET)
 
     return checkGitList
 
 
 def main():
+    colorama.init()
+
+
     '''
     Main Entry point for the GitUp script
     '''
     print('---------------------------------------------------')
-    print('GitUp - Git Updater')
+    print(Style.BRIGHT + 'GitUp - Git Updater' + Style.RESET_ALL)
     print('')
     print('ALPHA VERSION!')
     print('---------------------------------------------------')
