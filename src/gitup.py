@@ -26,13 +26,22 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = 5000):
     Helper method for running external commands. Returns the result and handles timeout and error codes
     '''
 
-    p = subprocess.Popen([prefix, args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if ' ' in args:
+        cmdList = list()
+        cmdList = [prefix]
+        cmdList[1:] = args.split(' ')
+        print(cmdList)
+        p = subprocess.Popen(cmdList, cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    else:
+        p = subprocess.Popen([prefix, args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
     err_code = p.wait(timeout)
 
     if err_code == 128:
         print('Timeout (EC ' + str(err_code) + ') while checking ' + folder)
     elif err_code != 0:
         print('Returned EC ' + str(err_code) + ' while checking ' + folder)
+        print(str(p.stdout.read()))
 
     return str(p.stdout.read())
 
@@ -125,7 +134,9 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
             if ans != '':
-                result = SysCmdRunner(folder=gitDir, args='committ ' + ans)
+                print('committ ' + ans.replace('\n',''))
+                merged = 'committ ' + ans.replace('\n','')
+                result = SysCmdRunner(folder=gitDir, args=merged)
             else:
                 print('Skipping..')
 
@@ -150,7 +161,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Skipping..')
 
         else:
-            print('Unknown operation on git repository ' + gitDir + ' detected. Please resolve it manually')
+            print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
 
 
     print('\nFinished resolving git repos')
@@ -172,6 +183,7 @@ def main():
         if ans == 'Y':
             GitResolver()
 
+            input('\nPress any key to quit')
 
 if __name__ == "__main__":
     main()
