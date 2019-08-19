@@ -6,48 +6,47 @@ from os.path import basename
 import subprocess
 import shutil
 
-maxFolderLevel = 2
+maxFolderLevel = 3
 projectMainFolder = "X:/"
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
 
 gitList = list()
 checkGitList = list()
 
-def ProjectWalker(curFolderLevel = 0, searchFolder = projectMainFolder):
+def ProjectWalker(curFolderLevel = 0, searchPattern = '.git', searchFolder = projectMainFolder):
+    if curFolderLevel > maxFolderLevel:
+        return gitList
+
     searchSubFolders = [f.path for f in os.scandir(searchFolder) if f.is_dir() ]
 
     # Search for gits in current folder level
     for subFolder in searchSubFolders:
-        if(".git" in subFolder):
+        if(searchPattern in subFolder):
             gitList.append(os.path.abspath(searchFolder))
             return gitList #We found a git in this folder level; so don't dive deeper
 
     # Didn't found a git; so start searching in subfolders
     for subFolder in searchSubFolders:
-        ProjectWalker(curFolderLevel + 1, subFolder)
+        ProjectWalker(curFolderLevel = curFolderLevel + 1, searchFolder = subFolder)
 
     return gitList
 
-def SysCmdRunner(folder, *args):
-    p = subprocess.Popen(['git', args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p.wait(5000)
+
+def SysCmdRunner(folder, args, prefix = 'git', timeout = 5000):
+    p = subprocess.Popen([prefix, args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    err_code = p.wait(timeout)
+
+    if err_code != 0:
+        print('Returned ' + str(err_code) + ' while checking ' + folder)
+
     return str(p.stdout.read())
+
 
 def GitChecker(gitDirList = gitList):
     print('\nChecking ' + str(len(gitDirList)) + ' detected directories\n')
 
     for gitDir in gitDirList:
 
-        result = SysCmdRunner(gitDir, 'status')
+        result = SysCmdRunner(folder=gitDir, args='status')
 
         if('Changes not staged for commit' in result):
             print('Some uncommitted changes in \t' + gitDir)
@@ -56,7 +55,16 @@ def GitChecker(gitDirList = gitList):
             print('Some untracked files in \t' + gitDir)
             checkGitList.append(gitDir)
 
-ProjectWalker()
-GitChecker(gitList)
+    return checkGitList
 
-input('\nDone. Press Any Key to quit')
+
+def main():
+    ProjectWalker()
+    GitChecker()
+
+    if len(checkGitList) != 0:
+        input('\nI found some repositories which may require your attention. \nPress any Key to quit')
+
+
+if __name__ == "__main__":
+    main()
