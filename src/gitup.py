@@ -9,7 +9,7 @@ import subprocess
 import shutil
 
 maxFolderLevel = 3
-projectMainFolder = "X:/"
+projectFolders = ['X:/', 'D:/Dokumente/Studium', 'C:/Program Files/Git/cmd']
 
 CHECKINGTIMEOUT = 5000
 RESOLVINGTIMEOUT = 100000
@@ -47,7 +47,7 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
 
     return str(p.stdout.read())
 
-def ProjectWalker(curFolderLevel = 0, searchPattern = '.git', searchFolder = projectMainFolder):
+def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
     '''
     Iterates the provided directory and find all git repos up to a desired depth recursively
     '''
@@ -187,7 +187,9 @@ def main():
     print('ALPHA VERSION!')
     print('---------------------------------------------------')
 
-    ProjectWalker()
+    for projectFolder in projectFolders:
+        ProjectWalker(projectFolder)
+
     GitChecker()
 
     if len(checkGitList) != 0:
