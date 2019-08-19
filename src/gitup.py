@@ -11,6 +11,9 @@ import shutil
 maxFolderLevel = 3
 projectMainFolder = "X:/"
 
+CHECKINGTIMEOUT = 5000
+RESOLVINGTIMEOUT = 100000
+
 gitList = list()
 checkGitList = OrderedDict()
 
@@ -21,7 +24,7 @@ class GitOperations():
     pull = 'pull'
     fetch = 'fetch'
 
-def SysCmdRunner(folder, args, prefix = 'git', timeout = 5000):
+def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
     '''
     Helper method for running external commands. Returns the result and handles timeout and error codes
     '''
@@ -76,7 +79,7 @@ def GitChecker(gitDirList = gitList):
 
     for gitDir in gitDirList:
 
-        result = SysCmdRunner(folder=gitDir, args='status')
+        result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
 
         #Check if we are locally clean
         if('Changes not staged for commit' in result):
@@ -89,8 +92,8 @@ def GitChecker(gitDirList = gitList):
 
         #Check if we have some changes on the remote site
         else:
-            result = SysCmdRunner(folder=gitDir, args='fetch')
-            result = SysCmdRunner(folder=gitDir, args='status')
+            result = SysCmdRunner(folder=gitDir, args='fetch', timeout=CHECKINGTIMEOUT)
+            result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
 
             if('Your branch is behind' in result):
                 print('Some changes on remote in \t' + gitDir)
@@ -123,7 +126,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Processing..')
 
                 merged = 'committ ' + ans.replace('\n','')
-                result = SysCmdRunner(folder=gitDir, args=merged)
+                result = SysCmdRunner(folder=gitDir, args=merged, timeout=RESOLVINGTIMEOUT)
             else:
                 print('Skipping..')
 
@@ -136,7 +139,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Processing..')
 
                 merged = 'committ ' + ans.replace('\n','')
-                result = SysCmdRunner(folder=gitDir, args=merged)
+                result = SysCmdRunner(folder=gitDir, args=merged, timeout=RESOLVINGTIMEOUT)
             else:
                 print('Skipping..')
 
@@ -148,11 +151,11 @@ def GitResolver(resolveGitList = checkGitList):
             if ans == 'Y':
                 print('Processing..')
 
-                result = SysCmdRunner(folder=gitDir, args='pull')
+                result = SysCmdRunner(folder=gitDir, args='pull', timeout=RESOLVINGTIMEOUT)
             else:
                 print('Skipping..')
 
-        elif(gitOperation == GitOperations.pull):
+        elif(gitOperation == GitOperations.push):
             print('Some unpushed changes in \t' + gitDir)
 
             ans = input('Should I push them? (Y/[n])\t')
@@ -160,7 +163,7 @@ def GitResolver(resolveGitList = checkGitList):
             if ans == 'Y':
                 print('Processing..')
 
-                result = SysCmdRunner(folder=gitDir, args='push')
+                result = SysCmdRunner(folder=gitDir, args='push', timeout=RESOLVINGTIMEOUT)
             else:
                 print('Skipping..')
 
