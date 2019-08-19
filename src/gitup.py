@@ -67,9 +67,6 @@ def ProjectWalker(curFolderLevel = 0, searchPattern = '.git', searchFolder = pro
     return gitList
 
 
-
-
-
 def GitChecker(gitDirList = gitList):
     '''
     Iterates the previously by ProjectWalker method detected git repos and calls git status or git fetch if required to check for any unresolved issues
@@ -123,6 +120,8 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
             if ans != '':
+                print('Processing..')
+
                 merged = 'committ ' + ans.replace('\n','')
                 result = SysCmdRunner(folder=gitDir, args=merged)
             else:
@@ -134,6 +133,8 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
             if ans != '':
+                print('Processing..')
+
                 merged = 'committ ' + ans.replace('\n','')
                 result = SysCmdRunner(folder=gitDir, args=merged)
             else:
@@ -145,6 +146,8 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Should I pull the repo? (Y/[n])\t')
 
             if ans == 'Y':
+                print('Processing..')
+
                 result = SysCmdRunner(folder=gitDir, args='pull')
             else:
                 print('Skipping..')
@@ -155,6 +158,8 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Should I push them? (Y/[n])\t')
 
             if ans == 'Y':
+                print('Processing..')
+
                 result = SysCmdRunner(folder=gitDir, args='push')
             else:
                 print('Skipping..')
@@ -162,8 +167,9 @@ def GitResolver(resolveGitList = checkGitList):
         else:
             print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
 
+        print('\n')
 
-    print('\nFinished resolving git repos')
+    print('Finished resolving git repositories')
 
     return checkGitList
 
@@ -172,12 +178,21 @@ def main():
     '''
     Main Entry point for the GitUp script
     '''
+    print('---------------------------------------------------')
+    print('GitUp - Git Updater')
+    print('')
+    print('ALPHA VERSION!')
+    print('---------------------------------------------------')
 
     ProjectWalker()
     GitChecker()
 
     if len(checkGitList) != 0:
-        ans = input('\nI found some repositories which may require your attention. \nPress (n/[Y]) to resolve them or any key to quit\t')
+        print('\n---------------------------------------------------\n')
+
+        ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
+
+        print('\n---------------------------------------------------\n')
 
         if ans != 'n':
             GitResolver()
