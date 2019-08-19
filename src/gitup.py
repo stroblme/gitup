@@ -1,3 +1,30 @@
+#!/usr/bin/env python
+
+# Titel:				GITUP - Git Updater
+# Author:				Melvin Strobl
+# Credits:				-
+# Date Created:			18.08.19
+# Last Update: 			19.08.19
+
+#BEGIN INIT INFO
+# Provides:		Git Updater
+# Description:	Checks the provided Git repositories for any news either local or on server side
+#END INIT INFO
+
+# DISCLAIMER:
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 import os
 from os import listdir
 from os.path import isfile, join
@@ -11,8 +38,8 @@ import shutil
 MAXFOLDERLEVEL = 3
 projectFolders = ['X:/', 'D:/Dokumente/Studium', 'C:/Program Files/Git/cmd']
 
-CHECKINGTIMEOUT = 5000
-RESOLVINGTIMEOUT = 100000
+CHECKINGTIMEOUT = 50
+RESOLVINGTIMEOUT = 1000
 
 gitList = list()
 checkGitList = OrderedDict()
@@ -40,7 +67,11 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
     err_code = p.wait(timeout)
 
     if err_code == 128:
-        print('Timeout (EC ' + str(err_code) + ') while checking ' + folder)
+        print('No Internet connection (EC ' + str(err_code) + ') while checking ' + folder)
+    elif err_code == 1:
+        print('General Error (EC ' + str(err_code) + ') while checking ' + folder)
+    elif err_code == 127:
+        print('Unknown git command (EC ' + str(err_code) + ') while checking ' + folder)
     elif err_code != 0:
         print('Returned EC ' + str(err_code) + ' while checking ' + folder)
         print(str(p.stdout.read()))
