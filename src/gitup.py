@@ -30,7 +30,6 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = 5000):
         cmdList = list()
         cmdList = [prefix]
         cmdList[1:] = args.split(' ')
-        print(cmdList)
         p = subprocess.Popen(cmdList, cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else:
         p = subprocess.Popen([prefix, args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -124,7 +123,8 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
             if ans != '':
-                result = SysCmdRunner(folder=gitDir, args='committ ' + ans)
+                merged = 'committ ' + ans.replace('\n','')
+                result = SysCmdRunner(folder=gitDir, args=merged)
             else:
                 print('Skipping..')
 
@@ -134,7 +134,6 @@ def GitResolver(resolveGitList = checkGitList):
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
             if ans != '':
-                print('committ ' + ans.replace('\n',''))
                 merged = 'committ ' + ans.replace('\n','')
                 result = SysCmdRunner(folder=gitDir, args=merged)
             else:
