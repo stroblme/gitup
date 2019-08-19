@@ -8,7 +8,7 @@ from collections import OrderedDict
 import subprocess
 import shutil
 
-maxFolderLevel = 3
+MAXFOLDERLEVEL = 3
 projectFolders = ['X:/', 'D:/Dokumente/Studium', 'C:/Program Files/Git/cmd']
 
 CHECKINGTIMEOUT = 5000
@@ -52,7 +52,7 @@ def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
     Iterates the provided directory and find all git repos up to a desired depth recursively
     '''
 
-    if curFolderLevel > maxFolderLevel:
+    if curFolderLevel > MAXFOLDERLEVEL:
         return gitList
 
     searchSubFolders = [f.path for f in os.scandir(searchFolder) if f.is_dir() ]
