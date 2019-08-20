@@ -6,9 +6,9 @@ Checks the provided Git repositories for any news either local or on server side
 
 First, provide your desired folders where GitUp should look for Git repos. E.g. you can provide something like "C:\User\xxx\projects" but not like "C:\" as the script is intended for running every startup and therefore might slow down you PC a lot if searching takes very long.
 
-´´´python
+```python
 py -3 gitup.py
-´´´
+```
 
 ## Disclaimer
 
