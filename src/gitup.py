@@ -245,6 +245,9 @@ def main():
             GitResolver()
 
             input('\nPress any key to quit')
+    else:
+        print(Fore.GREEN + 'All your repos are clean! :)' + Fore.RESET)
+
 
 if __name__ == "__main__":
     main()
