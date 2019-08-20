@@ -44,7 +44,7 @@ except:
         os.system('pip install colorama')
 
 MAXFOLDERLEVEL = 3
-projectFolders = ['X:/', 'D:/Dokumente/Studium', 'C:/Program Files/Git/cmd']
+projectFolders = ['C:/Users/m17538/Projects']
 
 CHECKINGTIMEOUT = 50
 RESOLVINGTIMEOUT = 1000
