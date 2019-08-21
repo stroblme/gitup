@@ -44,10 +44,12 @@ except:
         os.system('pip install colorama')
 
 MAXFOLDERLEVEL = 3
-projectFolders = ['C:/Users/m17538/Projects']
+projectFolders = list()
 
 CHECKINGTIMEOUT = 50
 RESOLVINGTIMEOUT = 1000
+
+CONFIGFILE = 'user.config'
 
 gitList = list()
 checkGitList = OrderedDict()
@@ -72,10 +74,14 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
     else:
         p = subprocess.Popen([prefix, args], cwd=folder, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    err_code = p.wait(timeout)
+    try:
+        err_code = p.wait(timeout)
+    except TimeoutError as t:
+        print('Timeout Error ' + str(err_code) + ') while checking ' + folder)
+        print(t.args)
 
     if err_code == 128:
-        print('No Internet connection (EC ' + str(err_code) + ') while checking ' + folder)
+        print('Cannot reach server (EC ' + str(err_code) + ') while checking ' + folder)
     elif err_code == 1:
         print('General Error (EC ' + str(err_code) + ') while checking ' + folder)
     elif err_code == 127:
@@ -215,10 +221,53 @@ def GitResolver(resolveGitList = checkGitList):
 
     return checkGitList
 
+def configParser(configFilePath = CONFIGFILE):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    filepath = dir_path + '/' + configFilePath
+
+    try:
+        f = open(os.path.abspath(filepath), 'r')
+    except FileNotFoundError:
+        createConfig(configFilePath)
+        f = open(os.path.abspath(filepath), 'r')
+
+    if (os.stat(filepath).st_size == 0):
+        createConfig(configFilePath)
+
+    tempProjectFolders = f.read().split(',')
+
+    for tempProjectFolder in tempProjectFolders:
+        if tempProjectFolder != '':
+            projectFolders.append(tempProjectFolder)
+
+    f.close()
+
+    return projectFolders
+
+def createConfig(configFilePath = CONFIGFILE):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    print(Fore.RED + 'Seems like you dont have created a config file yet or it is empty.\n' + Fore.RESET + 'Please tell me where I should look for Git repositories.\nIts okay if you provide some top level folder. I will then dig deeper.\nPress Enter to add the path.\nLeave blank and press Enter when your finished')
+        
+    ans = ' '
+
+    try:
+        f = open(os.path.abspath(dir_path + '/' + configFilePath), 'w')
+    except Exception as e:
+        print(Fore.RED + 'Cannot create a config file. Make sure that you have suffer privileges' + Fore.RESET)
+        print(e.args)
+
+    while ans is not '':
+        ans = input('\t>\t')
+
+        if ans is not '':
+            path = os.path.abspath(ans)
+
+            f.write(path + ',')
+    f.close()
 
 def main():
     colorama.init()
-
 
     '''
     Main Entry point for the GitUp script
@@ -229,10 +278,12 @@ def main():
     print('ALPHA VERSION!')
     print('---------------------------------------------------')
 
+    projectFolders = configParser()
+    
     for projectFolder in projectFolders:
-        ProjectWalker(projectFolder)
+        gitList = ProjectWalker(projectFolder)
 
-    GitChecker()
+    checkGitList = GitChecker(gitDirList=gitList)
 
     if len(checkGitList) != 0:
         print('\n---------------------------------------------------\n')
@@ -242,7 +293,7 @@ def main():
         print('\n---------------------------------------------------\n')
 
         if ans != 'n':
-            GitResolver()
+            GitResolver(resolveGitList=checkGitList)
 
             input('\nPress any key to quit')
     else:
