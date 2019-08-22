@@ -36,12 +36,17 @@ import subprocess
 import shutil
 
 try:
-    import colorama
-    from colorama import Fore, Back, Style
-
+    from colorama import init, Fore, Back, Style
 except:
-    if input('Colorama not installed. Should I install it?') == 'Y':
+    if input('Colorama module not installed. Should I install it?') == 'Y':
         os.system('pip install colorama')
+
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import LoggingEventHandler
+except:
+    if input('Watchdog module not installed. Should I install it?') == 'Y':
+        os.system('pip install watchdog')
 
 MAXFOLDERLEVEL = 3
 projectFolders = list()
@@ -266,9 +271,10 @@ def createConfig(configFilePath = CONFIGFILE):
             f.write(path + ',')
     f.close()
 
-def main():
-    colorama.init()
+def monitoring():
+    
 
+def main():
     '''
     Main Entry point for the GitUp script
     '''
@@ -277,6 +283,8 @@ def main():
     print('')
     print('ALPHA VERSION!')
     print('---------------------------------------------------')
+
+    init()  # Init colorama
 
     projectFolders = configParser()
     
