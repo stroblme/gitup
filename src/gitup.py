@@ -57,6 +57,8 @@ except:
     else:
         print('Cannot continue. Please install the module manually')
 
+from version import get_version
+
 MAXFOLDERLEVEL = 3
 projectFolders = list()
 
@@ -296,18 +298,38 @@ def monitoring():
         observer.stop()
     observer.join()
 
+def printGreeting():
+    """
+    Print a greeting and the current version tag if available
+    """
+    print(Style.BRIGHT + '----------------- GitUp - Git Updater -----------------\n' + Style.RESET_ALL)
+    try:
+        version = get_version()
+        print(Style.DIM + "Current Version is: " + Fore.YELLOW + str(version) + Fore.RESET + Style.RESET_ALL)
+    except RuntimeError:
+        try:
+            cmd = "git --git-dir "
+            cmd += os.path.dirname(os.path.abspath(__file__))
+            cmd += "\..\.git describe --abbrev=0 --tags"
+            out = os.popen(cmd).read()
+            print(Fore.RED + 'Seems like your running RegCon on an untagged tree' + Fore.RESET)
+            print('If you experience issues make sure to run' )
+            print(Fore.YELLOW + 'git checkout trees/' + out + Fore.YELLOW)
+        except:
+            print(Fore.RED + 'Cannot get current version. Will continue anyway.\n' + Fore.RESET)
+
+    print(Fore.GREEN + 'Initialization finished' + Fore.RESET)
+
+
 def main():
     '''
     Main Entry point for the GitUp script
     '''
-    print('---------------------------------------------------')
-    print(Style.BRIGHT + 'GitUp - Git Updater' + Style.RESET_ALL)
-    print('')
-    print('ALPHA VERSION!')
-    print('---------------------------------------------------')
+    init()  # Init colorama
+
+    printGreeting()
     # monitoring()
     
-    init()  # Init colorama
 
     global projectFolders, gitList, checkGitList
 
