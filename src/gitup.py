@@ -70,12 +70,18 @@ CONFIGFILE = 'user.config'
 gitList = list()
 checkGitList = OrderedDict()
 
-class GitOperations():
+class GitCommands():
     add = 'add'
     commit = 'commit'
     push = 'push'
     pull = 'pull'
     fetch = 'fetch'
+
+class GitOperation():
+    def __init__(self, operation, statusMessage):
+        self.operation = operation
+        self.statusMessage = statusMessage
+
 
 def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
     '''
@@ -263,8 +269,8 @@ def configParser(configFilePath = CONFIGFILE):
 def createConfig(configFilePath = CONFIGFILE):
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    print(Fore.RED + 'Seems like you dont have created a config file yet or it is empty.\n' + Fore.RESET + 'Please tell me where I should look for Git repositories.\nIts okay if you provide some top level folder. I will then dig deeper.\nPress Enter to add the path.\nLeave blank and press Enter when your finished')
-        
+    print(Fore.RED + 'Seems like you dont have created a config file yet or it is empty.\n' + Fore.RESET + 'Please tell me where I should look for Git repositories.\nIts okay if you provide some top level folder. I will then dig deeper.\nPress Enter to add the path.\nLeave blank and press Enter when you\'re finished')
+
     ans = ' '
 
     try:
@@ -312,7 +318,7 @@ def printGreeting():
             cmd += os.path.dirname(os.path.abspath(__file__))
             cmd += "\..\.git describe --abbrev=0 --tags"
             out = os.popen(cmd).read()
-            print(Fore.RED + 'Seems like your running RegCon on an untagged tree' + Fore.RESET)
+            print(Fore.RED + 'Seems like you\'re running RegCon on an untagged tree' + Fore.RESET)
             print('If you experience issues make sure to run' )
             print(Fore.YELLOW + 'git checkout trees/' + out + Fore.YELLOW)
         except:
@@ -329,12 +335,12 @@ def main():
 
     printGreeting()
     # monitoring()
-    
+
 
     global projectFolders, gitList, checkGitList
 
     projectFolders = configParser()
-    
+
     for projectFolder in projectFolders:
         gitList = ProjectWalker(projectFolder)
 
@@ -343,7 +349,7 @@ def main():
     if len(checkGitList) != 0:
         print('\n---------------------------------------------------\n')
 
-        ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
+        ans = input('I found some repositories which may require youre attention. \nDo you want to resolve them now? (n/[Y])\t')
 
         print('\n---------------------------------------------------\n')
 
@@ -352,7 +358,7 @@ def main():
 
             input('\nPress any key to quit')
     else:
-        print(Fore.GREEN + 'All your repos are clean! :)' + Fore.RESET)
+        print(Fore.GREEN + 'All youre repos are clean! :)' + Fore.RESET)
 
 
 if __name__ == "__main__":
