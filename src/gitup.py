@@ -35,18 +35,27 @@ from collections import OrderedDict
 import subprocess
 import shutil
 
+import sys
+import time
+import logging
+
 try:
     from colorama import init, Fore, Back, Style
 except:
-    if input('Colorama module not installed. Should I install it?') == 'Y':
+    if input('Colorama module not installed. Should I install it? ([Y]/n)') != 'n':
         os.system('pip install colorama')
+    else:
+        print('Cannot continue. Please install the module manually')
 
 try:
+    import watchdog
     from watchdog.observers import Observer
     from watchdog.events import LoggingEventHandler
 except:
-    if input('Watchdog module not installed. Should I install it?') == 'Y':
+    if input('Watchdog module not installed. Should I install it? ([Y]/n)') != 'n':
         os.system('pip install watchdog')
+    else:
+        print('Cannot continue. Please install the module manually')
 
 MAXFOLDERLEVEL = 3
 projectFolders = list()
@@ -272,7 +281,20 @@ def createConfig(configFilePath = CONFIGFILE):
     f.close()
 
 def monitoring():
-    
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+    path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    event_handler = LoggingEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, 'C:\\Users\\m17538\\Projects\\workingCache', recursive=True)
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 def main():
     '''
@@ -283,8 +305,11 @@ def main():
     print('')
     print('ALPHA VERSION!')
     print('---------------------------------------------------')
-
+    # monitoring()
+    
     init()  # Init colorama
+
+    global projectFolders, gitList, checkGitList
 
     projectFolders = configParser()
     
