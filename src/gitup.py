@@ -30,7 +30,9 @@ from os import listdir
 from os.path import isfile, join
 from os.path import basename
 
-from collections import OrderedDict
+# from collections import OrderedDict
+
+import re
 
 import subprocess
 import shutil
@@ -68,7 +70,7 @@ RESOLVINGTIMEOUT = 1000
 CONFIGFILE = 'user.config'
 
 gitList = list()
-checkGitList = OrderedDict()
+checkGitList = list()
 
 class GitCommands():
     add = 'add'
@@ -78,9 +80,24 @@ class GitCommands():
     fetch = 'fetch'
 
 class GitOperation():
-    def __init__(self, operation, statusMessage):
+    regExp = "modified:\s*(?P<file>.*)"
+    def __init__(self, directory, operation, statusMessage):
+        self.directory = directory
         self.operation = operation
         self.statusMessage = statusMessage
+
+        self.issuedFiles = self.detectIssuedFiles(statusMessage)
+
+    def detectIssuedFiles(self, message):
+        # p = re.compile(self.regExp)
+        result = re.search(self.regExp, message)
+
+        if result is not None:
+            print(result.group('file'))
+        # for match in result.group(1):
+        #     print(match)
+
+        return list()
 
 
 def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
@@ -148,14 +165,16 @@ def GitChecker(gitDirList = gitList):
 
         result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
 
+        suggestedCommand = None
+
         #Check if we are locally clean
         if('Changes not staged for commit' in result):
             print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-            checkGitList[gitDir] = GitOperations.commit
+            suggestedCommand = GitCommands.commit
 
         elif('Untracked files' in result):
             print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-            checkGitList[gitDir] = GitOperations.add
+            suggestedCommand = GitCommands.add
 
         #Check if we have some changes on the remote site
         else:
@@ -164,12 +183,15 @@ def GitChecker(gitDirList = gitList):
 
             if('Your branch is behind' in result):
                 print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-                checkGitList[gitDir] = GitOperations.pull
+                suggestedCommand = GitCommands.pull
 
             elif('Your branch is ahead' in result):
                 print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-                checkGitList[gitDir] = GitOperations.push
+                suggestedCommand = GitCommands.push
 
+        go = GitOperation(directory = gitDir, operation = suggestedCommand, statusMessage = result)
+
+        checkGitList.append(go)
 
     return checkGitList
 
@@ -179,12 +201,12 @@ def GitResolver(resolveGitList = checkGitList):
     Resolves any non-clean git repo detected by GitChecker method.
     Asks user to either commit, push or pull the desired repo
     '''
-
+    return
     print(Fore.CYAN + 'Resolving ' + str(len(resolveGitList)) + ' detected directories\n' + Fore.RESET)
 
-    for gitDir, gitOperation in resolveGitList.items():
+    for gitOperation in resolveGitList:
 
-        if(gitOperation == GitOperations.add):
+        if(gitOperation.operation == GitCommands.add):
             print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
@@ -197,7 +219,7 @@ def GitResolver(resolveGitList = checkGitList):
             else:
                 print('Skipping..')
 
-        elif(gitOperation == GitOperations.commit):
+        elif(gitOperation.operation == GitCommands.commit):
             print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
@@ -210,7 +232,7 @@ def GitResolver(resolveGitList = checkGitList):
             else:
                 print('Skipping..')
 
-        elif(gitOperation == GitOperations.pull):
+        elif(gitOperation.operation == GitCommands.pull):
             print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Should I pull the repo? (Y/[n])\t')
@@ -222,7 +244,7 @@ def GitResolver(resolveGitList = checkGitList):
             else:
                 print('Skipping..')
 
-        elif(gitOperation == GitOperations.push):
+        elif(gitOperation.operation == GitCommands.push):
             print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
             ans = input('Should I push them? (Y/[n])\t')
@@ -333,7 +355,7 @@ def main():
     '''
     init()  # Init colorama
 
-    printGreeting()
+    # printGreeting()
     # monitoring()
 
 
