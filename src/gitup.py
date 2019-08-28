@@ -39,23 +39,26 @@ import sys
 import time
 import logging
 
+import argparse  # parsing cmdline arguments
+
+
 try:
     from colorama import init, Fore, Back, Style
 except:
     if input('Colorama module not installed. Should I install it? ([Y]/n)') != 'n':
         os.system('pip install colorama')
     else:
-        print('Cannot continue. Please install the module manually')
+        sys.exit('Unfortunatly, GitUp can\'t continue without this module. Please install it manually')
 
 try:
     import watchdog
     from watchdog.observers import Observer
-    from watchdog.events import LoggingEventHandler
+    from watchdog.events import FileSystemEventHandler
 except:
     if input('Watchdog module not installed. Should I install it? ([Y]/n)') != 'n':
         os.system('pip install watchdog')
     else:
-        print('Cannot continue. Please install the module manually')
+        sys.exit('Unfortunatly, GitUp can\'t continue without this module. Please install it manually')
 
 from version import get_version
 
@@ -64,6 +67,7 @@ projectFolders = list()
 
 CHECKINGTIMEOUT = 50
 RESOLVINGTIMEOUT = 1000
+SLEEPTIME = 60              #Sleeptime between checking gits for remote updates
 
 CONFIGFILE = 'user.config'
 
@@ -76,6 +80,81 @@ class GitOperations():
     push = 'push'
     pull = 'pull'
     fetch = 'fetch'
+
+class GitEventHandler(FileSystemEventHandler):
+    """Logs all the events captured."""
+    lock = False
+
+    def on_moved(self, event):
+        super(GitEventHandler, self).on_moved(event)
+
+        if self.lock:
+            return
+
+        what = 'directory' if event.is_directory else 'file'
+        logging.info("Moved %s: from %s to %s", what, event.src_path,
+                     event.dest_path)
+        
+        self.check_git(event.src_path)
+
+    def on_created(self, event):
+        super(GitEventHandler, self).on_created(event)
+
+        if self.lock:
+            return
+        
+        what = 'directory' if event.is_directory else 'file'
+        logging.info("Created %s: %s", what, event.src_path)
+
+        self.check_git(event.src_path)
+
+
+    def on_deleted(self, event):
+        super(GitEventHandler, self).on_deleted(event)
+
+        if self.lock:
+            return
+
+        what = 'directory' if event.is_directory else 'file'
+        logging.info("Deleted %s: %s", what, event.src_path)
+
+        self.check_git(event.src_path)
+
+    def on_modified(self, event):
+        super(GitEventHandler, self).on_modified(event)
+
+        if self.lock:
+            return
+
+        what = 'directory' if event.is_directory else 'file'
+        logging.info("Modified %s: %s", what, event.src_path)
+
+        self.check_git(event.src_path)
+
+    def check_git(self, path):
+        self.lock = True    #Lock to prevent cont monitoring
+
+        GitDirChecker(os.path.dirname(path), findRoot = True) #Just use dirname for checking, as the file must be in a git by definition
+
+        self.lock = False
+# ----------------------------------------------------------
+# Helper Fct for handling input arguments
+# ----------------------------------------------------------
+def argumentHelper():
+    """
+    Just a helper for processing the arguments
+    """
+
+    # Define Help Te
+    helpText = 'Register Converter Script'
+    # Create ArgumentParser instance
+    argparser = argparse.ArgumentParser(description=helpText)
+
+    
+    argparser.add_argument('-m', '--monitor', action='store_true',
+                        help='Monitor the folders continously')
+
+    return argparser.parse_args()
 
 def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
     '''
@@ -140,33 +219,38 @@ def GitChecker(gitDirList = gitList):
 
     for gitDir in gitDirList:
 
-        result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
-
-        #Check if we are locally clean
-        if('Changes not staged for commit' in result):
-            print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-            checkGitList[gitDir] = GitOperations.commit
-
-        elif('Untracked files' in result):
-            print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-            checkGitList[gitDir] = GitOperations.add
-
-        #Check if we have some changes on the remote site
-        else:
-            result = SysCmdRunner(folder=gitDir, args='fetch', timeout=CHECKINGTIMEOUT)
-            result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
-
-            if('Your branch is behind' in result):
-                print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-                checkGitList[gitDir] = GitOperations.pull
-
-            elif('Your branch is ahead' in result):
-                print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-                checkGitList[gitDir] = GitOperations.push
-
+        GitDirChecker(gitDir)
 
     return checkGitList
 
+def GitDirChecker(gitDir, findRoot = False):
+    #Check for top level git if necessary
+    if findRoot:
+        gitDir = SysCmdRunner(folder=gitDir, args='rev-parse --show-toplevel', timeout=CHECKINGTIMEOUT)
+
+    result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
+
+    #Check if we are locally clean
+    if('Changes not staged for commit' in result):
+        print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
+        checkGitList[gitDir] = GitOperations.commit
+
+    elif('Untracked files' in result):
+        print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
+        checkGitList[gitDir] = GitOperations.add
+
+    #Check if we have some changes on the remote site
+    else:
+        result = SysCmdRunner(folder=gitDir, args='fetch', timeout=CHECKINGTIMEOUT)
+        result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
+
+        if('Your branch is behind' in result):
+            print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
+            checkGitList[gitDir] = GitOperations.pull
+
+        elif('Your branch is ahead' in result):
+            print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
+            checkGitList[gitDir] = GitOperations.push
 
 def GitResolver(resolveGitList = checkGitList):
     '''
@@ -178,64 +262,68 @@ def GitResolver(resolveGitList = checkGitList):
 
     for gitDir, gitOperation in resolveGitList.items():
 
-        if(gitOperation == GitOperations.add):
-            print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
-
-            ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
-
-            if ans != '':
-                print('Processing..')
-
-                merged = 'committ ' + ans.replace('\n','')
-                result = SysCmdRunner(folder=gitDir, args=merged, timeout=RESOLVINGTIMEOUT)
-            else:
-                print('Skipping..')
-
-        elif(gitOperation == GitOperations.commit):
-            print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
-
-            ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
-
-            if ans != '':
-                print('Processing..')
-
-                merged = 'committ ' + ans.replace('\n','')
-                result = SysCmdRunner(folder=gitDir, args=merged, timeout=RESOLVINGTIMEOUT)
-            else:
-                print('Skipping..')
-
-        elif(gitOperation == GitOperations.pull):
-            print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
-
-            ans = input('Should I pull the repo? (Y/[n])\t')
-
-            if ans == 'Y':
-                print('Processing..')
-
-                result = SysCmdRunner(folder=gitDir, args='pull', timeout=RESOLVINGTIMEOUT)
-            else:
-                print('Skipping..')
-
-        elif(gitOperation == GitOperations.push):
-            print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
-
-            ans = input('Should I push them? (Y/[n])\t')
-
-            if ans == 'Y':
-                print('Processing..')
-
-                result = SysCmdRunner(folder=gitDir, args='push', timeout=RESOLVINGTIMEOUT)
-            else:
-                print('Skipping..')
-
-        else:
-            print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
-
-        print('\n')
+        GitDirResolver(gitDir, gitOperation)
+        
 
     print(Fore.GREEN + 'Finished resolving git repositories' + Fore.RESET)
 
     return checkGitList
+
+def GitDirResolver(gitDir, gitOperation):
+    if(gitOperation == GitOperations.add):
+        print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+        ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
+
+        if ans != '':
+            print('Processing..')
+
+            merged = 'committ ' + ans.replace('\n','')
+            result = SysCmdRunner(folder=gitDir, args=merged, timeout=RESOLVINGTIMEOUT)
+        else:
+            print('Skipping..')
+
+    elif(gitOperation == GitOperations.commit):
+        print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+        ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
+
+        if ans != '':
+            print('Processing..')
+
+            merged = 'committ ' + ans.replace('\n','')
+            result = SysCmdRunner(folder=gitDir, args=merged, timeout=RESOLVINGTIMEOUT)
+        else:
+            print('Skipping..')
+
+    elif(gitOperation == GitOperations.pull):
+        print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+        ans = input('Should I pull the repo? (Y/[n])\t')
+
+        if ans == 'Y':
+            print('Processing..')
+
+            result = SysCmdRunner(folder=gitDir, args='pull', timeout=RESOLVINGTIMEOUT)
+        else:
+            print('Skipping..')
+
+    elif(gitOperation == GitOperations.push):
+        print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+        ans = input('Should I push them? (Y/[n])\t')
+
+        if ans == 'Y':
+            print('Processing..')
+
+            result = SysCmdRunner(folder=gitDir, args='push', timeout=RESOLVINGTIMEOUT)
+        else:
+            print('Skipping..')
+
+    else:
+        print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
+
+    print('\n')
 
 def configParser(configFilePath = CONFIGFILE):
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -282,18 +370,25 @@ def createConfig(configFilePath = CONFIGFILE):
             f.write(path + ',')
     f.close()
 
-def monitoring():
+def monitoring(gitDirList=gitList):
+
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    path = sys.argv[1] if len(sys.argv) > 1 else '.'
-    event_handler = LoggingEventHandler()
+
+    event_handler = GitEventHandler()
     observer = Observer()
-    observer.schedule(event_handler, 'C:\\Users\\m17538\\Projects\\workingCache', recursive=True)
+
+    for gitDir in gitDirList:
+        observer.schedule(event_handler, gitDir, recursive=True)
+
     observer.start()
     try:
         while True:
-            time.sleep(1)
+            time.sleep(SLEEPTIME)
+            GitChecker(gitDirList=gitList)
+
+
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
@@ -310,9 +405,9 @@ def printGreeting():
         try:
             cmd = "git --git-dir "
             cmd += os.path.dirname(os.path.abspath(__file__))
-            cmd += "\..\.git describe --abbrev=0 --tags"
-            out = os.popen(cmd).read()
-            print(Fore.RED + 'Seems like your running RegCon on an untagged tree' + Fore.RESET)
+            cmd += "\\..\\.git describe --abbrev=0 --tags"
+            out = os.popen(os.path.normpath(cmd)).read()
+            print(Fore.RED + 'Seems like you\'r running RegCon on an untagged tree' + Fore.RESET)
             print('If you experience issues make sure to run' )
             print(Fore.YELLOW + 'git checkout trees/' + out + Fore.YELLOW)
         except:
@@ -325,34 +420,56 @@ def main():
     '''
     Main Entry point for the GitUp script
     '''
+    global projectFolders, gitList, checkGitList
+
     init()  # Init colorama
 
     printGreeting()
-    # monitoring()
-    
 
-    global projectFolders, gitList, checkGitList
+    #-----------------------------------------------------
+    # ---------------Argument processing------------------
+    args = None
+    try:
+        args = argumentHelper()
+    except ValueError as e:
+        print(Fore.RED + "Unable to parse arguments:\n" + Fore.RESET)
+        sys.exit(e.args)
+
+    print("")
+
+    enableMonitoring = False
+    # Check if we have an input file provided
+    if(args.monitor):
+        enableMonitoring = True
+        
+
+    #-----------------------------------------------------
+    # ------------------Git Dir Search--------------------
 
     projectFolders = configParser()
     
     for projectFolder in projectFolders:
         gitList = ProjectWalker(projectFolder)
 
-    checkGitList = GitChecker(gitDirList=gitList)
 
-    if len(checkGitList) != 0:
-        print('\n---------------------------------------------------\n')
-
-        ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
-
-        print('\n---------------------------------------------------\n')
-
-        if ans != 'n':
-            GitResolver(resolveGitList=checkGitList)
-
-            input('\nPress any key to quit')
+    if enableMonitoring:
+        monitoring(gitDirList = gitList)
     else:
-        print(Fore.GREEN + 'All your repos are clean! :)' + Fore.RESET)
+        checkGitList = GitChecker(gitDirList=gitList)
+
+        if len(checkGitList) != 0:
+            print('\n---------------------------------------------------\n')
+
+            ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
+
+            print('\n---------------------------------------------------\n')
+
+            if ans != 'n':
+                GitResolver(resolveGitList=checkGitList)
+
+                input('\nPress any key to quit')
+        else:
+            print(Fore.GREEN + 'All your repos are clean! :)' + Fore.RESET)
 
 
 if __name__ == "__main__":
