@@ -97,7 +97,7 @@ class GitEventHandler(FileSystemEventHandler):
         # what = 'directory' if event.is_directory else 'file'
         # logging.info("Moved %s: from %s to %s", what, event.src_path,
         #              event.dest_path)
-        
+
         self.check_git(event.src_path)
 
     def on_created(self, event):
@@ -105,7 +105,7 @@ class GitEventHandler(FileSystemEventHandler):
 
         if self.lock:
             return
-        
+
         # what = 'directory' if event.is_directory else 'file'
         # logging.info("Created %s: %s", what, event.src_path)
 
@@ -162,7 +162,7 @@ def argumentHelper():
     # Create ArgumentParser instance
     argparser = argparse.ArgumentParser(description=helpText)
 
-    
+
     argparser.add_argument('-m', '--monitor', action='store_true',
                         help='Monitor the folders continously')
 
@@ -277,7 +277,7 @@ def GitResolver(resolveGitList = checkGitList):
     for gitDir, gitOperation in resolveGitList.items():
 
         GitDirResolver(gitDir, gitOperation)
-        
+
 
     print(Fore.GREEN + 'Finished resolving git repositories' + Fore.RESET)
 
@@ -366,7 +366,7 @@ def createConfig(configFilePath = CONFIGFILE):
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
     print(Fore.RED + 'Seems like you dont have created a config file yet or it is empty.\n' + Fore.RESET + 'Please tell me where I should look for Git repositories.\nIts okay if you provide some top level folder. I will then dig deeper.\nPress Enter to add the path.\nLeave blank and press Enter when your finished')
-        
+
     ans = ' '
 
     try:
@@ -455,13 +455,13 @@ def main():
     # Check if we have an input file provided
     if(args.monitor):
         enableMonitoring = True
-        
+
 
     #-----------------------------------------------------
     # ------------------Git Dir Search--------------------
 
     projectFolders = configParser()
-    
+
     for projectFolder in projectFolders:
         gitList = ProjectWalker(projectFolder)
 
