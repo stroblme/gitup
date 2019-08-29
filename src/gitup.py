@@ -71,6 +71,9 @@ SLEEPTIME = 60              #Sleeptime between checking gits for remote updates
 
 CONFIGFILE = 'user.config'
 
+ERASE_LINE = '\x1b[2K'
+CURSOR_UP_ONE = '\x1b[1A'
+
 gitList = list()
 checkGitList = OrderedDict()
 
@@ -91,9 +94,9 @@ class GitEventHandler(FileSystemEventHandler):
         if self.lock:
             return
 
-        what = 'directory' if event.is_directory else 'file'
-        logging.info("Moved %s: from %s to %s", what, event.src_path,
-                     event.dest_path)
+        # what = 'directory' if event.is_directory else 'file'
+        # logging.info("Moved %s: from %s to %s", what, event.src_path,
+        #              event.dest_path)
         
         self.check_git(event.src_path)
 
@@ -103,8 +106,8 @@ class GitEventHandler(FileSystemEventHandler):
         if self.lock:
             return
         
-        what = 'directory' if event.is_directory else 'file'
-        logging.info("Created %s: %s", what, event.src_path)
+        # what = 'directory' if event.is_directory else 'file'
+        # logging.info("Created %s: %s", what, event.src_path)
 
         self.check_git(event.src_path)
 
@@ -115,8 +118,8 @@ class GitEventHandler(FileSystemEventHandler):
         if self.lock:
             return
 
-        what = 'directory' if event.is_directory else 'file'
-        logging.info("Deleted %s: %s", what, event.src_path)
+        # what = 'directory' if event.is_directory else 'file'
+        # logging.info("Deleted %s: %s", what, event.src_path)
 
         self.check_git(event.src_path)
 
@@ -126,17 +129,26 @@ class GitEventHandler(FileSystemEventHandler):
         if self.lock:
             return
 
-        what = 'directory' if event.is_directory else 'file'
-        logging.info("Modified %s: %s", what, event.src_path)
+        # what = 'directory' if event.is_directory else 'file'
+        # logging.info("Modified %s: %s", what, event.src_path)
 
         self.check_git(event.src_path)
 
     def check_git(self, path):
         self.lock = True    #Lock to prevent cont monitoring
 
-        GitDirChecker(os.path.dirname(path), findRoot = True) #Just use dirname for checking, as the file must be in a git by definition
+
+        if not ".git" in path:
+            delete_last_lines()
+            GitDirChecker(os.path.dirname(path), findRoot = True) #Just use dirname for checking, as the file must be in a git by definition
 
         self.lock = False
+
+def delete_last_lines(n=1):
+    for _ in range(n):
+        sys.stdout.write(CURSOR_UP_ONE)
+        sys.stdout.write(ERASE_LINE)
+
 # ----------------------------------------------------------
 # Helper Fct for handling input arguments
 # ----------------------------------------------------------
@@ -227,6 +239,8 @@ def GitDirChecker(gitDir, findRoot = False):
     #Check for top level git if necessary
     if findRoot:
         gitDir = SysCmdRunner(folder=gitDir, args='rev-parse --show-toplevel', timeout=CHECKINGTIMEOUT)
+        gitDir = gitDir[2:]
+        gitDir = gitDir[:-3]
 
     result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
 
@@ -453,6 +467,8 @@ def main():
 
 
     if enableMonitoring:
+        print(Fore.GREEN + 'Monitoring...' + Fore.RESET)
+
         monitoring(gitDirList = gitList)
     else:
         checkGitList = GitChecker(gitDirList=gitList)
