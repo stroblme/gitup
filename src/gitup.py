@@ -276,7 +276,8 @@ def GitResolver(resolveGitList = checkGitList):
 
     for gitDir, gitOperation in resolveGitList.items():
 
-        GitDirResolver(gitDir, gitOperation)
+        if GitDirResolver(gitDir, gitOperation) == 0:
+            return checkGitList
 
 
     print(Fore.GREEN + 'Finished resolving git repositories' + Fore.RESET)
@@ -284,6 +285,8 @@ def GitResolver(resolveGitList = checkGitList):
     return checkGitList
 
 def GitDirResolver(gitDir, gitOperation):
+    ans = ''
+
     if(gitOperation == GitOperations.add):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
@@ -313,29 +316,31 @@ def GitDirResolver(gitDir, gitOperation):
     elif(gitOperation == GitOperations.pull):
         print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
-        ans = input('Should I pull the repo? (Y/[n])\t')
+        ans = input('Should I pull the repo? ([y]/N)\t')
 
-        if ans == 'Y':
+        if ans == 'N':
+            print('Skipping..')
+        else:
             print('Processing..')
 
             result = SysCmdRunner(folder=gitDir, args='pull', timeout=RESOLVINGTIMEOUT)
-        else:
-            print('Skipping..')
 
     elif(gitOperation == GitOperations.push):
         print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
-        ans = input('Should I push them? (Y/[n])\t')
+        ans = input('Should I push them? ([y]/N)\t')
 
-        if ans == 'Y':
+        if ans == 'N':
+            print('Skipping..')
+        else:
             print('Processing..')
 
             result = SysCmdRunner(folder=gitDir, args='push', timeout=RESOLVINGTIMEOUT)
-        else:
-            print('Skipping..')
 
     else:
         print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
+
+    if ans == 'c':
 
     print('\n')
 
@@ -481,9 +486,9 @@ def main():
             print('\n---------------------------------------------------\n')
 
             if ans != 'n':
-                GitResolver(resolveGitList=checkGitList)
+                if GitResolver(resolveGitList=checkGitList) != None:
+                    input('\nPress any key to quit')
 
-                input('\nPress any key to quit')
         else:
             print(Fore.GREEN + 'All your repos are clean! :)' + Fore.RESET)
 
