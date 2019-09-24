@@ -341,6 +341,7 @@ def GitDirResolver(gitDir, gitOperation):
         print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
 
     if ans == 'c':
+        sys.exit('Quiting due to user interrupt')
 
     print('\n')
 
@@ -420,7 +421,7 @@ def printGreeting():
     try:
         version = get_version()
         print(Style.DIM + "Current Version is: " + Fore.YELLOW + str(version) + Fore.RESET + Style.RESET_ALL)
-    except RuntimeError:
+    except:
         try:
             cmd = "git --git-dir "
             cmd += os.path.dirname(os.path.abspath(__file__))
