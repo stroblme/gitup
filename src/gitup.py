@@ -233,11 +233,11 @@ def GitChecker(gitDirList = gitList):
 
     for gitDir in gitDirList:
 
-        GitDirChecker(gitDir)
+        GitDirChecker(gitDir, checkGitList)
 
     return checkGitList
 
-def GitDirChecker(gitDir, findRoot = False):
+def GitDirChecker(gitDir, checkGitList, findRoot = False):
     #Check for top level git if necessary
     if findRoot:
         gitDir = SysCmdRunner(folder=gitDir, args='rev-parse --show-toplevel', timeout=CHECKINGTIMEOUT)
@@ -248,9 +248,8 @@ def GitDirChecker(gitDir, findRoot = False):
 
     #Check if we are locally clean
     if('Changes not staged for commit' in result):
-        res = re.search(r"\tmodifed:(?P<message>[^\n]+)", result)
         print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-        checkGitList[gitDir] = (GitOperations.commit, result)
+        checkGitList[gitDir] = GitOperations.commit
 
     elif('Untracked files' in result):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
@@ -277,9 +276,9 @@ def GitResolver(resolveGitList = checkGitList):
 
     print(Fore.CYAN + 'Resolving ' + str(len(resolveGitList)) + ' detected directories\n' + Fore.RESET)
 
-    for gitDir, gitOperation in resolveGitList.items():
+    for resGit in resolveGitList.items():
 
-        if GitDirResolver(gitDir, gitOperation) == 0:
+        if GitDirResolver(resGit) == 0:
             return checkGitList
 
 
@@ -293,8 +292,6 @@ def GitDirResolver(gitDir, gitOperation):
     if(gitOperation == GitOperations.add):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
 
-
-
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
         if ans != '':
@@ -307,6 +304,8 @@ def GitDirResolver(gitDir, gitOperation):
 
     elif(gitOperation == GitOperations.commit):
         print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+        res = re.search(r"\tmodifed:(?P<message>[^\n]+)", gitOperation.message)
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
