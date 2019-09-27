@@ -201,14 +201,13 @@ def GitResolver(resolveGitList = checkGitList):
     Resolves any non-clean git repo detected by GitChecker method.
     Asks user to either commit, push or pull the desired repo
     '''
-    return
     print(Fore.CYAN + 'Resolving ' + str(len(resolveGitList)) + ' detected directories\n' + Fore.RESET)
 
     for gitOperation in resolveGitList:
 
         if(gitOperation.operation == GitCommands.add):
             print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
-
+y
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
             if ans != '':
@@ -221,6 +220,8 @@ def GitResolver(resolveGitList = checkGitList):
 
         elif(gitOperation.operation == GitCommands.commit):
             print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+            res = re.search(r'\tmodified:(?P<modified>[^\n])')
 
             ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
@@ -257,7 +258,7 @@ def GitResolver(resolveGitList = checkGitList):
                 print('Skipping..')
 
         else:
-            print('Unknown operation ' + gitOperation + ' on git repository ' + gitDir + ' detected. Please resolve it manually')
+            print('Unknown operation on git repository ' + gitDir + ' detected. Please resolve it manually')
 
         print('\n')
 
