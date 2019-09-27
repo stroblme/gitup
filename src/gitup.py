@@ -39,6 +39,8 @@ import sys
 import time
 import logging
 
+import re
+
 import argparse  # parsing cmdline arguments
 
 
@@ -246,8 +248,9 @@ def GitDirChecker(gitDir, findRoot = False):
 
     #Check if we are locally clean
     if('Changes not staged for commit' in result):
+        res = re.search(r"\tmodifed:(?P<message>[^\n]+)", result)
         print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
-        checkGitList[gitDir] = GitOperations.commit
+        checkGitList[gitDir] = (GitOperations.commit, result)
 
     elif('Untracked files' in result):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
@@ -289,6 +292,8 @@ def GitDirResolver(gitDir, gitOperation):
 
     if(gitOperation == GitOperations.add):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitDir + Style.RESET_ALL)
+
+
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
@@ -482,6 +487,7 @@ def main():
         if len(checkGitList) != 0:
             print('\n---------------------------------------------------\n')
 
+            print('You can press (c) at any time to quit GITUP')
             ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
 
             print('\n---------------------------------------------------\n')
