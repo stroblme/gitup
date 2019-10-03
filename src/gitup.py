@@ -98,34 +98,41 @@ class GitFile():
 class GitOperation():
     regExp = r"(M (?P<modified>[^\\]+))|(\?\? (?P<unresolved>[^\\]+))|(A (?P<added>[^\\]+))|(D (?P<deleted>[^\\]+))|(U (?P<untracked>[^\\]+))|(C (?P<copied>[^\\]+))"
 
-    modified = list()
-    unresolved = list()
-    added = list()
-    copied = list()
-    deleted = list()
-    untracked = list()
+
 
     def __init__(self, directory, statusMessage):
+        self.modified = list()
+        self.unresolved = list()
+        self.added = list()
+        self.copied = list()
+        self.deleted = list()
+        self.untracked = list()
+
         self.directory = directory
         self.statusMessage = statusMessage
 
         self.action = list()
 
-        self.detectIssuedFiles(statusMessage)
-
-        self.suggestGitOperation()
+        if self.detectIssuedFiles(statusMessage):
+            self.suggestGitOperation()
+        else:
+            self.action = None
 
     def detectIssuedFiles(self, message):
         # p = re.compile(self.regExp)
-        results = re.findall(self.regExp, message)
+        results = re.search(self.regExp, message)
 
-        for result in results:
-            self.modified.append(result.group('modified'))
-            self.unresolved.append(result.group('unresolved'))
-            self.added.append(result.group('added'))
-            self.deleted.append(result.group('deleted'))
-            self.untracked.append(result.group('untracked'))
-            self.copied.append(result.group('copied'))
+        if not results:
+            return False
+
+        self.modified = self.add(self.modified, results.group('modified'))
+        self.unresolved = self.add(self.unresolved, results.group('unresolved'))
+        self.added = self.add(self.added, results.group('added'))
+        self.deleted = self.add(self.deleted, results.group('deleted'))
+        self.untracked = self.add(self.untracked, results.group('untracked'))
+        self.copied = self.add(self.copied, results.group('copied'))
+
+        return True
 
     def suggestGitOperation(self):
         if self.added or self.deleted or self.copied or self.untracked:
@@ -138,6 +145,16 @@ class GitOperation():
             self.action = None
 
         return self.action
+
+    def add(self, list, groupResult):
+        if not groupResult:
+            return None
+
+        if len(groupResult) != 0:
+            list.append(groupResult)
+            return list
+        else:
+            return None
 
 class GitEventHandler(FileSystemEventHandler):
     """Logs all the events captured."""
@@ -308,7 +325,7 @@ def GitDirChecker(gitDir, findRoot = False):
 
     gitOp = GitOperation(gitDir, result)
 
-    if gitOp.action == None:
+    if gitOp.action is None:
         result = SysCmdRunner(folder=gitDir, args='fetch', timeout=CHECKINGTIMEOUT)
         result = SysCmdRunner(folder=gitDir, args='status --porcelain', timeout=CHECKINGTIMEOUT)
 
@@ -344,14 +361,14 @@ def GitDirResolver(gitOp):
 
     if(gitOp.action == GitCommands.add):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitOp.directory + Style.RESET_ALL)
-        if gitOp.added:
-            print(Style.DIM + Fore.YELLOW + 'A\t' + gitOp.added + Fore.RESET + Style.RESET_ALL)
-        if gitOp.copied:
-            print(Style.DIM + Fore.YELLOW + 'C\t' + gitOp.copied + Fore.RESET + Style.RESET_ALL)
-        if gitOp.deleted:
-            print(Style.DIM + Fore.YELLOW + 'D\t' + gitOp.deleted + Fore.RESET + Style.RESET_ALL)
-        if gitOp.untracked:
-            print(Style.DIM + Fore.YELLOW + 'U\t' + gitOp.untracked + Fore.RESET + Style.RESET_ALL)
+        for a in gitOp.added:
+            print(Style.DIM + Fore.YELLOW + 'A\t' + a + Fore.RESET + Style.RESET_ALL)
+        for c in gitOp.copied:
+            print(Style.DIM + Fore.YELLOW + 'C\t' + c + Fore.RESET + Style.RESET_ALL)
+        for d in gitOp.deleted:
+            print(Style.DIM + Fore.YELLOW + 'D\t' + d + Fore.RESET + Style.RESET_ALL)
+        for u in gitOp.untracked:
+            print(Style.DIM + Fore.YELLOW + 'U\t' + u + Fore.RESET + Style.RESET_ALL)
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
@@ -367,8 +384,8 @@ def GitDirResolver(gitOp):
 
     elif(gitOp.action == GitCommands.commit):
         print(Style.DIM + Fore.RED + 'Some uncommitted changes in \t' + Fore.RESET + gitOp.directory + Style.RESET_ALL)
-        if gitOp.modified:
-            print(Style.DIM + Fore.YELLOW + 'M\t' + gitOp.modified + Fore.RESET + Style.RESET_ALL)
+        for m in gitOp.modified:
+            print(Style.DIM + Fore.YELLOW + 'M\t' + m + Fore.RESET + Style.RESET_ALL)
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
@@ -384,8 +401,8 @@ def GitDirResolver(gitOp):
 
     elif(gitOp.action == GitCommands.resolve):
         print(Style.DIM + Fore.RED + 'Some unresolved files in \t' + Fore.RESET + gitOp.directory + Style.RESET_ALL)
-        if gitOp.unresolved:
-            print(Style.DIM + Fore.YELLOW + '?\t' + gitOp.unresolved + Fore.RESET + Style.RESET_ALL)
+        for u in gitOp.unresolved:
+            print(Style.DIM + Fore.YELLOW + '?\t' + u + Fore.RESET + Style.RESET_ALL)
 
         ans = input('Press any key when you finished resolving them\t')
 
