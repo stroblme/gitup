@@ -1,6 +1,6 @@
 # Source: https://github.com/Changaco/version.py
 
-# Modifications by Melvin Strobl using version from 22.08.2019 
+# Modifications by Melvin Strobl using version from 22.08.2019
 
 from os.path import dirname, isdir, join
 import re
@@ -30,8 +30,9 @@ def get_version():
 
     # PEP 440 compatibility
     if '-' in version:
-        if version.endswith('-dirty'):
-            raise RuntimeError('The working tree is dirty')
+        # if version.endswith('-dirty'):
+            # raise RuntimeError('The working tree is dirty')
+
         version = '.post'.join(version.split('-')[:2])
 
     return version

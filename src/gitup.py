@@ -98,12 +98,12 @@ class GitFile():
 class GitOperation():
     regExp = r"(M (?P<modified>[^\\]+))|(\?\? (?P<unresolved>[^\\]+))|(A (?P<added>[^\\]+))|(D (?P<deleted>[^\\]+))|(U (?P<untracked>[^\\]+))|(C (?P<copied>[^\\]+))"
 
-    modified = None
-    unresolved = None
-    added = None
-    copied = None
-    deleted = None
-    untracked = None
+    modified = list()
+    unresolved = list()
+    added = list()
+    copied = list()
+    deleted = list()
+    untracked = list()
 
     def __init__(self, directory, statusMessage):
         self.directory = directory
@@ -117,15 +117,15 @@ class GitOperation():
 
     def detectIssuedFiles(self, message):
         # p = re.compile(self.regExp)
-        result = re.search(self.regExp, message)
+        results = re.findall(self.regExp, message)
 
-        if result is not None:
-            self.modified = result.group('modified')
-            self.unresolved = result.group('unresolved')
-            self.added = result.group('added')
-            self.deleted = result.group('deleted')
-            self.untracked = result.group('untracked')
-            self.copied = result.group('copied')
+        for result in results:
+            self.modified.append(result.group('modified'))
+            self.unresolved.append(result.group('unresolved'))
+            self.added.append(result.group('added'))
+            self.deleted.append(result.group('deleted'))
+            self.untracked.append(result.group('untracked'))
+            self.copied.append(result.group('copied'))
 
     def suggestGitOperation(self):
         if self.added or self.deleted or self.copied or self.untracked:
@@ -223,7 +223,7 @@ def argumentHelper():
 
     return argparser.parse_args()
 
-def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
+def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT, printErrors = False):
     '''
     Helper method for running external commands. Returns the result and handles timeout and error codes
     '''
@@ -242,15 +242,16 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT):
         print('Timeout Error ' + str(err_code) + ') while checking ' + folder)
         print(t.args)
 
-    if err_code == 128:
-        print('Cannot reach server (EC ' + str(err_code) + ') while checking ' + folder)
-    elif err_code == 1:
-        print('General Error (EC ' + str(err_code) + ') while checking ' + folder)
-    elif err_code == 127:
-        print('Unknown git command (EC ' + str(err_code) + ') while checking ' + folder)
-    elif err_code != 0:
-        print('Returned EC ' + str(err_code) + ' while checking ' + folder)
-        print(str(p.stdout.read()))
+    if printErrors:
+        if err_code == 128:
+            print('Cannot reach server (EC ' + str(err_code) + ') while checking ' + folder)
+        elif err_code == 1:
+            print('General Error (EC ' + str(err_code) + ') while checking ' + folder)
+        elif err_code == 127:
+            print('Unknown git command (EC ' + str(err_code) + ') while checking ' + folder)
+        elif err_code != 0:
+            print('Returned EC ' + str(err_code) + ' while checking ' + folder)
+            print(str(p.stdout.read()))
 
     return str(p.stdout.read())
 
@@ -508,9 +509,9 @@ def printGreeting():
         print(Style.DIM + "Current Version is: " + Fore.YELLOW + str(version) + Fore.RESET + Style.RESET_ALL)
     except:
         try:
-            cmd = "git --git-dir "
+            cmd = 'git --git-dir \"'
             cmd += os.path.dirname(os.path.abspath(__file__))
-            cmd += "\\..\\.git describe --abbrev=0 --tags"
+            cmd += '\\..\\.git" describe --abbrev=0 --tags'
             out = os.popen(os.path.normpath(cmd)).read()
             print(Fore.RED + 'Seems like you\'r running GITUP on an untagged tree' + Fore.RESET)
             print('If you experience issues make sure to run' )
@@ -518,8 +519,8 @@ def printGreeting():
         except:
             print(Fore.RED + 'Cannot get current version. Will continue anyway.\n' + Fore.RESET)
 
+    print('')
     print(Fore.GREEN + 'Initialization finished' + Fore.RESET)
-
 
 def main():
     '''
