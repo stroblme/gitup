@@ -96,7 +96,7 @@ class GitFile():
 
 
 class GitOperation():
-    regExp = r"(M (?P<modified>[^\\]+))|(\?\? (?P<unresolved>[^\\]+))|(A (?P<added>[^\\]+))|(D (?P<deleted>[^\\]+))|(U (?P<untracked>[^\\]+))|(C (?P<copied>[^\\]+))"
+    regExp = r"(M (?P<modified>[^\\]+))|(\?\? (?P<untracked>[^\\]+))|(A (?P<added>[^\\]+))|(D (?P<deleted>[^\\]+))|(U (?P<unresolved>[^\\]+))|(C (?P<copied>[^\\]+))"
 
 
 
