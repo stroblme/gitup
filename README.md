@@ -22,4 +22,3 @@ As with any open source stuff, I definitely do not guarantee an error-free funct
 - Set pull as default
 - add defaults to config
 - probably set as standalone runtime?
-- Add posibility to view details

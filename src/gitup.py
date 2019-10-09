@@ -45,6 +45,7 @@ import re
 
 import argparse  # parsing cmdline arguments
 
+from indexed import IndexedOrderedDict
 
 try:
     from colorama import init, Fore, Back, Style
@@ -69,7 +70,7 @@ from version import get_version
 MAXFOLDERLEVEL = 3
 projectFolders = list()
 
-CHECKINGTIMEOUT = 50
+CHECKINGTIMEOUT = 20
 RESOLVINGTIMEOUT = 1000
 SLEEPTIME = 60              #Sleeptime between checking gits for remote updates
 
@@ -119,18 +120,17 @@ class GitOperation():
             self.action = None
 
     def detectIssuedFiles(self, message):
-        # p = re.compile(self.regExp)
-        results = re.search(self.regExp, message)
-
-        if not results:
+        if message == "b''" or message == "":
             return False
+        # p = re.compile(self.regExp)
+        for result in re.finditer(self.regExp, message):
 
-        self.modified = self.add(self.modified, results.group('modified'))
-        self.unresolved = self.add(self.unresolved, results.group('unresolved'))
-        self.added = self.add(self.added, results.group('added'))
-        self.deleted = self.add(self.deleted, results.group('deleted'))
-        self.untracked = self.add(self.untracked, results.group('untracked'))
-        self.copied = self.add(self.copied, results.group('copied'))
+            self.modified = self.add(self.modified, result.group('modified'))
+            self.unresolved = self.add(self.unresolved, result.group('unresolved'))
+            self.added = self.add(self.added, result.group('added'))
+            self.copied = self.add(self.copied, result.group('copied'))
+            self.deleted = self.add(self.deleted, result.group('deleted'))
+            self.untracked = self.add(self.untracked, result.group('untracked'))
 
         return True
 
@@ -149,8 +149,7 @@ class GitOperation():
     def add(self, list, groupResult):
         if not groupResult:
             return None
-
-        if len(groupResult) != 0:
+        if len(groupResult) != 0 and list is not None:
             list.append(groupResult)
             return list
         else:
@@ -258,6 +257,8 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT, printE
     except TimeoutError as t:
         print('Timeout Error ' + str(err_code) + ') while checking ' + folder)
         print(t.args)
+    except subprocess.TimeoutExpired as t:
+        print('Timeout Error while checking ' + folder)
 
     if printErrors:
         if err_code == 128:
@@ -596,8 +597,6 @@ def main():
         else:
             print(Fore.GREEN + 'All youre repos are clean! :)' + Fore.RESET)
             print('\n---------------------------------------------------\n')
-
-            input('\nPress any key to quit')
 
 
 
