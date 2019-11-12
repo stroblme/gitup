@@ -362,14 +362,18 @@ def GitDirResolver(gitOp):
 
     if(gitOp.action == GitCommands.add):
         print(Style.DIM + Fore.RED + 'Some untracked files in \t' + Fore.RESET + gitOp.directory + Style.RESET_ALL)
-        for a in gitOp.added:
-            print(Style.DIM + Fore.YELLOW + 'A\t' + a + Fore.RESET + Style.RESET_ALL)
-        for c in gitOp.copied:
-            print(Style.DIM + Fore.YELLOW + 'C\t' + c + Fore.RESET + Style.RESET_ALL)
-        for d in gitOp.deleted:
-            print(Style.DIM + Fore.YELLOW + 'D\t' + d + Fore.RESET + Style.RESET_ALL)
-        for u in gitOp.untracked:
-            print(Style.DIM + Fore.YELLOW + 'U\t' + u + Fore.RESET + Style.RESET_ALL)
+        if gitOp.added:
+            for a in gitOp.added:
+               print(Style.DIM + Fore.YELLOW + 'A\t' + a + Fore.RESET + Style.RESET_ALL)
+        if gitOp.copied:
+            for c in gitOp.copied:
+                print(Style.DIM + Fore.YELLOW + 'C\t' + c + Fore.RESET + Style.RESET_ALL)
+        if gitOp.deleted:
+            for d in gitOp.deleted:
+                print(Style.DIM + Fore.YELLOW + 'D\t' + d + Fore.RESET + Style.RESET_ALL)
+        if gitOp.untracked:
+            for u in gitOp.untracked:
+                print(Style.DIM + Fore.YELLOW + 'U\t' + u + Fore.RESET + Style.RESET_ALL)
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
