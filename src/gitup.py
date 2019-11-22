@@ -45,7 +45,14 @@ import re
 
 import argparse  # parsing cmdline arguments
 
-from indexed import IndexedOrderedDict
+try:
+    from indexed import IndexedOrderedDict
+except:
+    if input('Indexed module not installed. Should I install it? ([Y]/n)') != 'n':
+        os.system('pip install Indexed.py')
+    else:
+        sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
+
 
 try:
     from colorama import init, Fore, Back, Style
@@ -281,7 +288,11 @@ def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
     if curFolderLevel > MAXFOLDERLEVEL:
         return gitList
 
-    searchSubFolders = [f.path for f in os.scandir(searchFolder) if f.is_dir() ]
+    try:
+        searchSubFolders = [f.path for f in os.scandir(searchFolder) if f.is_dir() ]
+    except FileNotFoundError as identifier:
+        print(Fore.RED + "Cannot find one or more files in your config: " + str(identifier) + Fore.RESET)
+        sys.exit("Error while searching for directories")
 
     # Search for gits in current folder level
     for subFolder in searchSubFolders:
@@ -581,6 +592,7 @@ def main():
     for projectFolder in projectFolders:
         gitList = ProjectWalker(projectFolder)
 
+    print(Fore.GREEN + 'Looking up git directories finished' + Fore.RESET)
 
     if enableMonitoring:
         print(Fore.GREEN + 'Monitoring...' + Fore.RESET)
