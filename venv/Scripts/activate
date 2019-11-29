@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="X:\GITUP - Git Updater\venv"
+VIRTUAL_ENV="C:\Users\m17538\Projects\gitup\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

@@ -339,15 +339,20 @@ def GitDirChecker(gitDir, findRoot = False):
 
     if gitOp.action is None:
         result = SysCmdRunner(folder=gitDir, args='fetch', timeout=CHECKINGTIMEOUT)
-        result = SysCmdRunner(folder=gitDir, args='status --porcelain', timeout=CHECKINGTIMEOUT)
+        result = SysCmdRunner(folder=gitDir, args='status', timeout=CHECKINGTIMEOUT)
 
-        if('Your branch is behind' in result):
+        if('You have unmerged paths' in result):
+            print(Style.DIM + Fore.RED + 'Some unmerged paths in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
+            gitOp.action = GitCommands.resolve
+        elif('Your branch is behind' in result):
             print(Style.DIM + Fore.RED + 'Some changes on remote in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
             gitOp.action = GitCommands.pull
-
         elif('Your branch is ahead' in result):
             print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
             gitOp.action = GitCommands.push
+        elif('have diverged' in result):
+            print(Style.DIM + Fore.RED + 'Some branches have diverged in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
+            gitOp.action = GitCommands.pull
     else:
         print(Style.DIM + Fore.RED + 'Some issued files in \t' + Fore.RESET + gitDir + Style.RESET_ALL + Style.RESET_ALL)
 

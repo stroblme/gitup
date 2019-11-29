@@ -1,4 +1,4 @@
-#!"x:\gitup - git updater\venv\scripts\python.exe"
+#!c:\users\m17538\projects\gitup\venv\scripts\python.exe
 # EASY-INSTALL-ENTRY-SCRIPT: 'watchdog==0.9.0','console_scripts','watchmedo'
 __requires__ = 'watchdog==0.9.0'
 import re
