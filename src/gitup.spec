@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['gitup.py'],
-             pathex=['C:\\Users\\m17538\\Projects\\gitup\\src'],
+             pathex=['X:\\GITUP - Git Updater\\src'],
              binaries=[],
              datas=[],
              hiddenimports=[],
