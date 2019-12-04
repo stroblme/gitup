@@ -46,6 +46,15 @@ import re
 import argparse  # parsing cmdline arguments
 
 try:
+    from python_settings import settings
+except:
+    if input('Settings module not installed. Should I install it? ([Y]/n)') != 'n':
+        os.system('pip install python-settings')
+    else:
+        sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
+
+
+try:
     from indexed import IndexedOrderedDict
 except:
     if input('Indexed module not installed. Should I install it? ([Y]/n)') != 'n':
@@ -73,6 +82,9 @@ except:
         sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
 
 from version import get_version
+
+APPLICATIONNAME = 'GITUP'
+COMPANY = 'MSLS'
 
 MAXFOLDERLEVEL = 3
 projectFolders = list()
