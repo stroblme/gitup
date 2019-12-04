@@ -45,43 +45,16 @@ import re
 
 import argparse  # parsing cmdline arguments
 
-try:
-    from python_settings import settings
-except:
-    if input('Settings module not installed. Should I install it? ([Y]/n)') != 'n':
-        os.system('pip install python-settings')
-    else:
-        sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
+from python_settings import settings
 
+from indexed import IndexedOrderedDict
 
-try:
-    from indexed import IndexedOrderedDict
-except:
-    if input('Indexed module not installed. Should I install it? ([Y]/n)') != 'n':
-        os.system('pip install Indexed.py')
-    else:
-        sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
+from colorama import init, Fore, Back, Style
 
+import watchdog
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
-try:
-    from colorama import init, Fore, Back, Style
-except:
-    if input('Colorama module not installed. Should I install it? ([Y]/n)') != 'n':
-        os.system('pip install colorama')
-    else:
-        sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
-
-try:
-    import watchdog
-    from watchdog.observers import Observer
-    from watchdog.events import FileSystemEventHandler
-except:
-    if input('Watchdog module not installed. Should I install it? ([Y]/n)') != 'n':
-        os.system('pip install watchdog')
-    else:
-        sys.exit('Unfortunately, GitUp can\'t continue without this module. Please install it manually')
-
-from version import get_version
 
 APPLICATIONNAME = 'GITUP'
 COMPANY = 'MSLS'
