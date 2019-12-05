@@ -138,14 +138,11 @@ class GitOperation():
 
         return self.action
 
-    def add(self, list, groupResult):
-        if not groupResult:
-            return None
-        if len(groupResult) != 0 and list is not None:
-            list.append(groupResult)
-            return list
-        else:
-            return None
+    def add(self, lst, groupResult):
+        if groupResult and len(groupResult) != 0 and lst is not None:
+            lst.append(groupResult)
+
+        return lst
 
 class GitEventHandler(FileSystemEventHandler):
     """Logs all the events captured."""
