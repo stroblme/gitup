@@ -393,11 +393,14 @@ def GitDirResolver(gitOp):
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
-        if ans != '' and ans != 'c':
+        if ans != '':
             print('Processing..')
 
             merged = 'committ ' + ans.replace('\n','')
             result = SysCmdRunner(folder=gitOp.directory, args=merged, timeout=RESOLVINGTIMEOUT)
+        elif ans != 'c':
+            print('Cancelling..')
+            sys.exit('Exiting GitUp due to user request')
         else:
             print('Skipping..')
 
@@ -417,8 +420,11 @@ def GitDirResolver(gitOp):
 
         ans = input('Should I pull the repo? ([y]/N)\t')
 
-        if ans == 'N' or ans =='c':
+        if ans == 'N':
             print('Skipping..')
+        elif ans != 'c':
+            print('Cancelling..')
+            sys.exit('Exiting GitUp due to user request')
         else:
             print('Processing..')
 
@@ -431,8 +437,11 @@ def GitDirResolver(gitOp):
 
         ans = input('Should I push them? ([y]/N)\t')
 
-        if ans == 'N' or ans =='c':
+        if ans == 'N':
             print('Skipping..')
+        elif ans != 'c':
+            print('Cancelling..')
+            sys.exit('Exiting GitUp due to user request')
         else:
             print('Processing..')
 
@@ -446,7 +455,7 @@ def GitDirResolver(gitOp):
         gitOp.action = None
 
     if ans == 'c':
-        sys.exit('Quiting due to user interrupt')
+        sys.exit('Exiting GitUp due to user request')
 
     print('\n')
 
