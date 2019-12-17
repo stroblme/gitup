@@ -1,0 +1,2 @@
+- [ ] Implement correct version displaying on exe startup
+- [ ] show git error messages to user
