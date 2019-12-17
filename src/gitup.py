@@ -58,6 +58,7 @@ from watchdog.events import FileSystemEventHandler
 
 APPLICATIONNAME = 'GITUP'
 COMPANY = 'MSLS'
+VERSION = 'v2.3'
 
 MAXFOLDERLEVEL = 3
 projectFolders = list()
@@ -524,20 +525,9 @@ def printGreeting():
     Print a greeting and the current version tag if available
     """
     print(Style.BRIGHT + '----------------- GitUp - Git Updater -----------------\n' + Style.RESET_ALL)
-    try:
-        version = get_version()
-        print(Style.DIM + "Current Version is: " + Fore.YELLOW + str(version) + Fore.RESET + Style.RESET_ALL)
-    except:
-        try:
-            cmd = 'git --git-dir \"'
-            cmd += os.path.dirname(os.path.abspath(__file__))
-            cmd += '\\..\\.git" describe --abbrev=0 --tags'
-            out = os.popen(os.path.normpath(cmd)).read()
-            print(Fore.RED + 'Seems like you\'r running GITUP on an untagged tree' + Fore.RESET)
-            print('If you experience issues make sure to run' )
-            print(Fore.YELLOW + 'git checkout trees/' + out + Fore.YELLOW)
-        except:
-            print(Fore.RED + 'Cannot get current version. Will continue anyway.\n' + Fore.RESET)
+
+    print(Style.DIM + "Current Version is: " + Fore.YELLOW + VERSION + Fore.RESET + Style.RESET_ALL)
+
 
     print('')
     print(Fore.GREEN + 'Initialization finished' + Fore.RESET)
@@ -591,10 +581,10 @@ def main():
         if len(checkGitList) != 0:
             print('\n---------------------------------------------------\n')
 
-            print('You can press (c) at any time to quit GITUP')
+            print('You can press "c" at any time to quit GITUP')
             ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
 
-            if ans != 'n':
+            if ans != 'n' of ans != 'c':
                 if GitResolver(resolveGitList=checkGitList) != None:
                     input('\nPress any key to quit')
         else:
