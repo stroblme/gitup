@@ -276,6 +276,9 @@ def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
     except FileNotFoundError as identifier:
         print(Fore.RED + "Cannot find one or more files in your config: " + str(identifier) + Fore.RESET)
         sys.exit("Error while searching for directories")
+    except PermissionError as identifier:
+        print(Fore.YELLOW + "Access denied for folder " + searchFolder + Fore.RESET)
+        return gitList
 
     # Search for gits in current folder level
     for subFolder in searchSubFolders:
@@ -593,7 +596,7 @@ def main():
             print('You can press "c" at any time to quit GITUP')
             ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
 
-            if ans != 'n' of ans != 'c':
+            if ans != 'n' or ans != 'c':
                 if GitResolver(resolveGitList=checkGitList) != None:
                     input('\nPress any key to quit')
         else:
