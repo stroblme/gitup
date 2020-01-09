@@ -401,7 +401,7 @@ def GitDirResolver(gitOp):
 
             merged = 'committ ' + ans.replace('\n','')
             result = SysCmdRunner(folder=gitOp.directory, args=merged, timeout=RESOLVINGTIMEOUT)
-        elif ans != 'c':
+        elif ans == 'c':
             print('Cancelling..')
             sys.exit('Exiting GitUp due to user request')
         else:
@@ -604,6 +604,7 @@ def main():
             print('\n---------------------------------------------------\n')
 
 
+    time.sleep(3)
 
 
 if __name__ == "__main__":
