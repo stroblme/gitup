@@ -379,7 +379,7 @@ def GitDirResolver(gitOp):
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
-        if ans != '' and ans != 'c':
+        if ans != '' and ans == 'c':
             print('Processing..')
 
             merged = 'committ ' + ans.replace('\n','')
@@ -425,7 +425,7 @@ def GitDirResolver(gitOp):
 
         if ans == 'N':
             print('Skipping..')
-        elif ans != 'c':
+        elif ans == 'c':
             print('Cancelling..')
             sys.exit('Exiting GitUp due to user request')
         else:
@@ -442,7 +442,7 @@ def GitDirResolver(gitOp):
 
         if ans == 'N':
             print('Skipping..')
-        elif ans != 'c':
+        elif ans == 'c':
             print('Cancelling..')
             sys.exit('Exiting GitUp due to user request')
         else:
@@ -596,7 +596,7 @@ def main():
             print('You can press "c" at any time to quit GITUP')
             ans = input('I found some repositories which may require your attention. \nDo you want to resolve them now? (n/[Y])\t')
 
-            if ans != 'n' or ans != 'c':
+            if ans != 'n' or ans == 'c':
                 if GitResolver(resolveGitList=checkGitList) != None:
                     input('\nPress any key to quit')
         else:
