@@ -379,7 +379,7 @@ def GitDirResolver(gitOp):
 
         ans = input('Enter a commit message and I will do the rest. Leave blank to skip\t')
 
-        if ans != '' and ans == 'c':
+        if ans != '' and ans != 'c':
             print('Processing..')
 
             merged = 'committ ' + ans.replace('\n','')
