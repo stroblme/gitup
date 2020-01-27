@@ -284,7 +284,7 @@ def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
     for subFolder in searchSubFolders:
         if(searchPattern in subFolder):
             gitList.append(os.path.abspath(searchFolder))
-            # return gitList #We found a git in this folder level; so don't dive deeper
+            return gitList #We found a git in this folder level; so don't dive deeper
 
     # Didn't found a git; so start searching in subfolders
     for subFolder in searchSubFolders:
