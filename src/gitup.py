@@ -352,9 +352,21 @@ def GitResolver(resolveGitList = checkGitList):
     print(Fore.CYAN + 'Resolving ' + str(len(resolveGitList)) + ' detected directories\n' + Fore.RESET)
 
     for gitOp in resolveGitList:
-        action = gitOp.action
-        while action != None:
-            action = GitDirResolver(gitOp).action
+
+        if gitOp.action:
+            lastAction = None
+            while (lastAction != gitOp.action) and gitOp.action != None:
+                lastAction = gitOp.action
+                gitOp = GitDirResolver(gitOp)   # Resolve
+                gitOp = GitDirChecker(gitOp.directory)  # And check for new actions
+
+            if lastAction == gitOp.action:
+                print(Style.DIM + Fore.YELLOW + 'Skipping as action persists. Please fix manually.' + Fore.RESET + Style.RESET_ALL)
+            if gitOp.action == None:
+                print(Style.DIM + Fore.GREEN + 'Resolved!' + Fore.RESET + Style.RESET_ALL)
+
+            print('\n')
+
 
 
     print(Fore.GREEN + 'Finished resolving git repositories' + Fore.RESET)
@@ -460,7 +472,6 @@ def GitDirResolver(gitOp):
     if ans == 'c':
         sys.exit('Exiting GitUp due to user request')
 
-    print('\n')
 
     return gitOp
 
