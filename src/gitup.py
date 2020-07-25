@@ -437,6 +437,8 @@ def GitDirResolver(gitOp):
 
         if ans == 'N':
             print('Skipping..')
+            gitOp.action = None
+
         elif ans == 'c':
             print('Cancelling..')
             sys.exit('Exiting GitUp due to user request')
@@ -445,7 +447,7 @@ def GitDirResolver(gitOp):
 
             result = SysCmdRunner(folder=gitOp.directory, args='pull', timeout=RESOLVINGTIMEOUT)
 
-        gitOp = GitDirChecker(gitOp.directory)
+            gitOp = GitDirChecker(gitOp.directory)
 
     elif(gitOp.action == GitCommands.push):
         print(Style.DIM + Fore.RED + 'Some unpushed changes in \t' + Fore.RESET + gitOp.directory + Style.RESET_ALL)
@@ -454,6 +456,7 @@ def GitDirResolver(gitOp):
 
         if ans == 'N':
             print('Skipping..')
+
         elif ans == 'c':
             print('Cancelling..')
             sys.exit('Exiting GitUp due to user request')
