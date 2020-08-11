@@ -59,7 +59,7 @@ echo PASS
 GOTO :DONE
 
 :FAIL
-echo !!!!!!!! Building SSG Failed !!!!!!!!
+echo !!!!!!!! Building Gitup Failed !!!!!!!!
 GOTO DONE
 
 :DONE
