@@ -1,4 +1,4 @@
-venv/*
+venv
 user.config
 
 # Created by https://www.gitignore.io/api/code,python
