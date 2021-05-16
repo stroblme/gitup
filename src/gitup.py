@@ -61,6 +61,7 @@ COMPANY = 'MSLS'
 VERSION = 'v2.3'
 
 MAXFOLDERLEVEL = 3
+SEARCHDEEPER = True
 projectFolders = list()
 
 CHECKINGTIMEOUT = 20
@@ -263,16 +264,17 @@ def SysCmdRunner(folder, args, prefix = 'git', timeout = CHECKINGTIMEOUT, printE
 
     return str(p.stdout.read())
 
-def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
+def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '\\.git'):
     '''
     Iterates the provided directory and find all git repos up to a desired depth recursively
     '''
+    global gitList
 
     if curFolderLevel > MAXFOLDERLEVEL:
         return gitList
 
     try:
-        searchSubFolders = [f.path for f in os.scandir(searchFolder) if f.is_dir() ]
+        searchSubFolders = [f.path for f in os.scandir(searchFolder) if (f.is_dir() or ".git" == f.name) and not "$RECYCLE.BIN" in f.name]
     except FileNotFoundError as identifier:
         print(Fore.RED + "Cannot find one or more files in your config: " + str(identifier) + Fore.RESET)
         sys.exit("Error while searching for directories")
@@ -282,13 +284,17 @@ def ProjectWalker(searchFolder, curFolderLevel = 0, searchPattern = '.git'):
 
     # Search for gits in current folder level
     for subFolder in searchSubFolders:
-        if(searchPattern in subFolder):
+        if(subFolder.endswith(".git")):
             gitList.append(os.path.abspath(searchFolder))
-            return gitList #We found a git in this folder level; so don't dive deeper
+
+            if not SEARCHDEEPER:
+                return gitList #We found a git in this folder level; so don't dive deeper
 
     # Didn't found a git; so start searching in subfolders
-    for subFolder in searchSubFolders:
-        ProjectWalker(curFolderLevel = curFolderLevel + 1, searchFolder = subFolder)
+    if not SEARCHDEEPER or not ".git" in searchSubFolders:
+        for subFolder in searchSubFolders:
+            if not ".git" in subFolder:
+                ProjectWalker(curFolderLevel = curFolderLevel + 1, searchFolder = subFolder)
 
     return gitList
 
