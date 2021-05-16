@@ -601,6 +601,8 @@ def main():
     for projectFolder in projectFolders:
         gitList = ProjectWalker(projectFolder)
 
+    gitList.reverse()
+
     print(Fore.GREEN + 'Looking up git directories finished' + Fore.RESET)
 
     if enableMonitoring:
